@@ -58,6 +58,12 @@ const Navbar = () => {
                             Memories
                         </Link>
                         <Link
+                            to="/trips"
+                            className={`nav-link ${isActive("/trips") ? "active" : ""}`}
+                        >
+                            Trips
+                        </Link>
+                        <Link
                             to="/profile"
                             className={`nav-link ${isActive("/profile") ? "active" : ""}`}
                         >

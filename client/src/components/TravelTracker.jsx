@@ -4,14 +4,18 @@ import { MapContainer, TileLayer, GeoJSON, Marker, Popup } from "react-leaflet";
 import L from "leaflet";
 import "leaflet/dist/leaflet.css";
 
-// Fix for default Leaflet marker icons in React/Vite builds
+// Inline SVG Teal Marker Pin (Offline compatible)
+const tealPinSvg = `data:image/svg+xml;utf8,${encodeURIComponent(`
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="32" height="32">
+  <path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z" fill="#0d9488"/>
+</svg>
+`)}`;
+
 const customMarkerIcon = new L.Icon({
-    iconUrl: "https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-2x-teal.png",
-    shadowUrl: "https://cdnjs.cloudflare.com/ajax/libs/leaflet/0.7.7/images/marker-shadow.png",
-    iconSize: [25, 41],
-    iconAnchor: [12, 41],
-    popupAnchor: [1, -34],
-    shadowSize: [41, 41]
+    iconUrl: tealPinSvg,
+    iconSize: [32, 32],
+    iconAnchor: [16, 32],
+    popupAnchor: [0, -32]
 });
 
 // Mapping of countries to continents
@@ -64,6 +68,21 @@ const countryToContinent = {
 };
 
 // Total count of recognized countries per continent
+// Inline SVG Violet Marker Pin (Offline compatible)
+const violetPinSvg = `data:image/svg+xml;utf8,${encodeURIComponent(`
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="32" height="32">
+  <path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z" fill="#7c3aed"/>
+</svg>
+`)}`;
+
+const tripMarkerIcon = new L.Icon({
+    iconUrl: violetPinSvg,
+    iconSize: [32, 32],
+    iconAnchor: [16, 32],
+    popupAnchor: [0, -32]
+});
+
+// Total count of recognized countries per continent
 const continentTotalCountries = {
     "Asia": 49,
     "Europe": 44,
@@ -74,7 +93,7 @@ const continentTotalCountries = {
     "Antarctica": 1
 };
 
-const TravelTracker = ({ memories }) => {
+const TravelTracker = ({ memories = [], trips = [] }) => {
     const [geoJsonData, setGeoJsonData] = useState(null);
     const [hoveredCountry, setHoveredCountry] = useState(null);
 
@@ -86,8 +105,9 @@ const TravelTracker = ({ memories }) => {
             .catch((err) => console.error("Error loading world boundaries geojson:", err));
     }, []);
 
-    // 1. Group memories by country to calculate visit statistics
+    // 1. Group memories & trips by country to calculate visit statistics
     const countryStats = {};
+
     memories.forEach((memory) => {
         if (!memory.country) return;
         const countryKey = memory.country.toLowerCase().trim();
@@ -119,6 +139,37 @@ const TravelTracker = ({ memories }) => {
         }
     });
 
+    trips.forEach((trip) => {
+        if (!trip.country) return;
+        const countryKey = trip.country.toLowerCase().trim();
+        
+        // Calculate duration in days
+        let durationDays = 1;
+        if (trip.startDate && trip.endDate) {
+            const start = new Date(trip.startDate);
+            const end = new Date(trip.endDate);
+            const diffTime = Math.abs(end - start);
+            durationDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24)) + 1;
+        }
+
+        if (!countryStats[countryKey]) {
+            countryStats[countryKey] = {
+                name: trip.country,
+                trips: 0,
+                daysSpent: 0,
+                lastVisit: new Date(0)
+            };
+        }
+
+        countryStats[countryKey].trips += 1;
+        countryStats[countryKey].daysSpent += durationDays;
+        
+        const tripDate = trip.startDate ? new Date(trip.startDate) : new Date(trip.updatedAt || trip.createdAt || Date.now());
+        if (tripDate > countryStats[countryKey].lastVisit) {
+            countryStats[countryKey].lastVisit = tripDate;
+        }
+    });
+
     const visitedCountriesList = Object.keys(countryStats);
     const totalVisited = visitedCountriesList.length;
 
@@ -144,7 +195,12 @@ const TravelTracker = ({ memories }) => {
     const totalContinents = visitedContinentsSet.size;
 
     // Cities count
-    const uniqueCities = [...new Set(memories.map((m) => m.city?.toLowerCase().trim()).filter(Boolean))];
+    const uniqueCities = [
+        ...new Set([
+            ...memories.map((m) => m.city?.toLowerCase().trim()).filter(Boolean),
+            ...trips.map((t) => t.city?.toLowerCase().trim()).filter(Boolean)
+        ])
+    ];
 
     // Percentage of world explored
     const exploredPercentage = ((totalVisited / 195) * 100).toFixed(1);
@@ -206,7 +262,7 @@ const TravelTracker = ({ memories }) => {
                 Relive your journeys and track how much of the world you have explored.
             </p>
 
-            <div style={{ display: "grid", gridTemplateColumns: "1.5fr 1fr", gap: "2rem" }}>
+            <div style={{ display: "grid", gridTemplateColumns: "1.5fr 1fr", gap: "2rem", alignItems: "start" }}>
                 
                 {/* Left Side: Leaflet Interactive Map */}
                 <div className="glass-panel" style={{ 
@@ -249,12 +305,16 @@ const TravelTracker = ({ memories }) => {
                         <MapContainer 
                             center={[20, 0]} 
                             zoom={2} 
+                            minZoom={2}
+                            maxBounds={[[-90, -180], [90, 180]]}
+                            maxBoundsViscosity={1.0}
                             style={{ height: "100%", width: "100%" }}
                             scrollWheelZoom={true}
                         >
                             <TileLayer
                                 attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
                                 url="https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png"
+                                noWrap={true}
                             />
                             
                             {/* GeoJSON Country Boundaries */}
@@ -314,6 +374,55 @@ const TravelTracker = ({ memories }) => {
                                     </Marker>
                                 );
                             })}
+
+                            {/* Trip Location Markers (Violet Color Pin) */}
+                            {trips.map((trip) => {
+                                const lat = Number(trip.latitude);
+                                const lng = Number(trip.longitude);
+                                if (isNaN(lat) || isNaN(lng) || lat === 0 || lng === 0) return null;
+
+                                return (
+                                    <Marker 
+                                        key={trip._id} 
+                                        position={[lat, lng]} 
+                                        icon={tripMarkerIcon}
+                                    >
+                                        <Popup>
+                                            <div style={{ width: "200px", fontSize: "0.85rem" }}>
+                                                {trip.image && (
+                                                    <img 
+                                                        src={`http://127.0.0.1:5000${trip.image}`} 
+                                                        alt={trip.title}
+                                                        style={{ width: "100%", height: "100px", objectFit: "cover", borderRadius: "6px", marginBottom: "0.5rem" }}
+                                                    />
+                                                )}
+                                                <h4 style={{ fontWeight: "700", marginBottom: "0.25rem" }}>{trip.title}</h4>
+                                                <div style={{ color: "#64748b", marginBottom: "0.25rem" }}>
+                                                    📍 {trip.destination}
+                                                </div>
+                                                <div style={{ color: "#64748b", marginBottom: "0.5rem" }}>
+                                                    🗓️ {trip.startDate ? new Date(trip.startDate).toLocaleDateString() : ""}
+                                                </div>
+                                                <Link 
+                                                    to="/trips" 
+                                                    style={{ 
+                                                        display: "block", 
+                                                        textAlign: "center", 
+                                                        background: "#4f46e5", 
+                                                        color: "white", 
+                                                        padding: "0.35rem 0.5rem", 
+                                                        borderRadius: "4px", 
+                                                        fontWeight: "600",
+                                                        fontSize: "0.8rem"
+                                                    }}
+                                                >
+                                                    View Trip Details
+                                                </Link>
+                                            </div>
+                                        </Popup>
+                                    </Marker>
+                                );
+                            })}
                         </MapContainer>
                     </div>
 
@@ -352,7 +461,7 @@ const TravelTracker = ({ memories }) => {
                             </div>
                             <div style={{ display: "flex", justifyContent: "space-between", fontSize: "0.95rem" }}>
                                 <span style={{ color: "#64748b", display: "flex", alignItems: "center", gap: "0.4rem" }}>✈️ Total Trips</span>
-                                <span style={{ fontWeight: "700", color: "#0f172a" }}>{memories.length}</span>
+                                <span style={{ fontWeight: "700", color: "#0f172a" }}>{memories.length + trips.length}</span>
                             </div>
                             <div style={{ display: "flex", justifyContent: "space-between", fontSize: "0.95rem" }}>
                                 <span style={{ color: "#64748b", display: "flex", alignItems: "center", gap: "0.4rem" }}>📸 Memories Created</span>

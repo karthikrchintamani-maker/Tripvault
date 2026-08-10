@@ -52,6 +52,7 @@ app.use("/api-docs", swaggerUi.serve, swaggerUi.setup(swaggerDocs));
 // Mount Routes
 app.use("/api/auth", require("./routes/auth"));
 app.use("/api/memory", require("./routes/memory"));
+app.use("/api/trips", require("./routes/trips"));
 
 // Test root route
 app.get("/", (req, res) => {
@@ -64,7 +65,8 @@ app.get("/api", (req, res) => {
         message: "Welcome to the TripVault API",
         endpoints: {
             auth: ["/api/auth/register", "/api/auth/login", "/api/auth/me"],
-            memories: ["/api/memory"]
+            memories: ["/api/memory"],
+            trips: ["/api/trips"]
         }
     });
 });

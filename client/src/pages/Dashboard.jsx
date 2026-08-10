@@ -7,6 +7,7 @@ import TravelTracker from "../components/TravelTracker";
 const Dashboard = () => {
     const [user, setUser] = useState(null);
     const [memories, setMemories] = useState([]);
+    const [trips, setTrips] = useState([]);
     const [loading, setLoading] = useState(true);
 
     useEffect(() => {
@@ -17,6 +18,9 @@ const Dashboard = () => {
 
                 const memoryRes = await API.get("/memory");
                 setMemories(memoryRes.data);
+
+                const tripsRes = await API.get("/trips");
+                setTrips(tripsRes.data);
             } catch (err) {
                 console.error("Failed to fetch dashboard data:", err);
             } finally {
@@ -35,8 +39,66 @@ const Dashboard = () => {
         );
     }
 
-    const uniqueLocations = [...new Set(memories.map((m) => m.location.toLowerCase().trim()))];
+    const uniqueLocations = [
+        ...new Set([
+            ...memories.map((m) => m.location.toLowerCase().trim()).filter(Boolean),
+            ...trips.map((t) => t.destination.toLowerCase().trim()).filter(Boolean)
+        ])
+    ];
+
+    const getLatestAdventureDate = () => {
+        let latest = null;
+        
+        memories.forEach((m) => {
+            if (!m.date) return;
+            const d = new Date(m.date);
+            if (!isNaN(d.getTime())) {
+                if (!latest || d > latest) latest = d;
+            }
+        });
+
+        trips.forEach((t) => {
+            const dateStr = t.startDate || t.createdAt;
+            if (!dateStr) return;
+            const d = new Date(dateStr);
+            if (!isNaN(d.getTime())) {
+                if (!latest || d > latest) latest = d;
+            }
+        });
+
+        return latest;
+    };
+
+    const latestAdventureDate = getLatestAdventureDate();
     const latestMemory = memories.length > 0 ? memories[0] : null;
+
+    const allAdventures = [
+        ...memories.map(m => ({
+            type: "Memory",
+            title: m.title,
+            location: m.location || (m.city && m.country ? `${m.city}, ${m.country}` : m.city || m.country || "Unknown"),
+            date: new Date(m.date),
+            description: m.description,
+            image: m.image
+        })),
+        ...trips.map(t => ({
+            type: "Trip Plan",
+            title: t.title,
+            location: t.destination,
+            date: t.startDate ? new Date(t.startDate) : new Date(t.createdAt),
+            description: t.description,
+            image: t.image
+        }))
+    ].filter(a => a.date && !isNaN(a.date.getTime()));
+
+    allAdventures.sort((a, b) => b.date - a.date);
+    const latestHighlight = allAdventures.length > 0 ? allAdventures[0] : null;
+
+    const latestTrip = trips.length > 0 ? [...trips].sort((a, b) => {
+        const da = a.startDate ? new Date(a.startDate) : new Date(a.createdAt);
+        const db = b.startDate ? new Date(b.startDate) : new Date(b.createdAt);
+        return db - da;
+    })[0] : null;
 
     return (
         <div style={{ maxWidth: "1000px", margin: "0 auto", padding: "1rem 0" }}>
@@ -72,8 +134,8 @@ const Dashboard = () => {
             {/* Quick Metrics Grid */}
             <div className="stats-grid" style={{ 
                 display: "grid", 
-                gridTemplateColumns: "repeat(3, 1fr)", 
-                gap: "1.5rem", 
+                gridTemplateColumns: "repeat(4, 1fr)", 
+                gap: "1.25rem", 
                 marginBottom: "2.5rem" 
             }}>
                 
@@ -82,16 +144,16 @@ const Dashboard = () => {
                     background: "#f8fafc", 
                     border: "1px solid #e2e8f0", 
                     borderRadius: "16px", 
-                    padding: "1.25rem 1.5rem",
+                    padding: "1.25rem 1.25rem",
                     display: "flex", 
                     alignItems: "center", 
                     justifyContent: "space-between",
                     boxShadow: "none"
                 }}>
-                    <div style={{ display: "flex", alignItems: "center", gap: "1.25rem" }}>
+                    <div style={{ display: "flex", alignItems: "center", gap: "1rem" }}>
                         <div style={{ 
-                            width: "42px", 
-                            height: "42px", 
+                            width: "40px", 
+                            height: "40px", 
                             borderRadius: "10px", 
                             backgroundColor: "#f5f3ff", 
                             color: "#8b5cf6",
@@ -99,21 +161,48 @@ const Dashboard = () => {
                             alignItems: "center",
                             justifyContent: "center"
                         }}>
-                            <svg width="22" height="22" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+                            <svg width="20" height="20" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
                                 <path strokeLinecap="round" strokeLinejoin="round" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
                             </svg>
                         </div>
                         <div className="stat-info">
-                            <span className="stat-value" style={{ color: "#7c3aed", fontSize: "1.8rem", fontWeight: "700" }}>{memories.length}</span>
-                            <span className="stat-label" style={{ color: "#64748b", fontSize: "0.85rem", fontWeight: "500" }}>Total Memories</span>
+                            <span className="stat-value" style={{ color: "#7c3aed", fontSize: "1.6rem", fontWeight: "700" }}>{memories.length}</span>
+                            <span className="stat-label" style={{ color: "#64748b", fontSize: "0.8rem", fontWeight: "500" }}>Total Memories</span>
                         </div>
                     </div>
-                    {/* Folders Stack Graphic Vector */}
-                    <svg width="60" height="50" viewBox="0 0 60 50" fill="none" style={{ opacity: 0.25, color: "#64748b" }}>
-                        <rect x="10" y="10" width="38" height="28" rx="3" fill="#cbd5e1" stroke="currentColor" strokeWidth="1.5"/>
-                        <rect x="5" y="15" width="38" height="28" rx="3" fill="#94a3b8" stroke="currentColor" strokeWidth="1.5"/>
-                        <path d="M15 15h18m-18 6h18m-18 6h10" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/>
-                    </svg>
+                </div>
+
+                {/* Stat 2: Total Trips */}
+                <div className="glass-panel stat-card" style={{ 
+                    background: "#f8fafc", 
+                    border: "1px solid #e2e8f0", 
+                    borderRadius: "16px", 
+                    padding: "1.25rem 1.25rem",
+                    display: "flex", 
+                    alignItems: "center", 
+                    justifyContent: "space-between",
+                    boxShadow: "none"
+                }}>
+                    <div style={{ display: "flex", alignItems: "center", gap: "1rem" }}>
+                        <div style={{ 
+                            width: "40px", 
+                            height: "40px", 
+                            borderRadius: "10px", 
+                            backgroundColor: "#f5f3ff", 
+                            color: "#8b5cf6",
+                            display: "flex",
+                            alignItems: "center",
+                            justifyContent: "center"
+                        }}>
+                            <svg width="20" height="20" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" d="M21 16v-2l-8-5V3.5c0-.83-.67-1.5-1.5-1.5S10 2.67 10 3.5V9l-8 5v2l8-2.5V19l-2 1.5V22l3.5-1 3.5 1v-1.5L13 19v-5.5l8 2.5z" />
+                            </svg>
+                        </div>
+                        <div className="stat-info">
+                            <span className="stat-value" style={{ color: "#7c3aed", fontSize: "1.6rem", fontWeight: "700" }}>{trips.length}</span>
+                            <span className="stat-label" style={{ color: "#64748b", fontSize: "0.8rem", fontWeight: "500" }}>Total Trips</span>
+                        </div>
+                    </div>
                 </div>
 
                 {/* Stat 2: Unique Locations */}
@@ -185,8 +274,8 @@ const Dashboard = () => {
                         </div>
                         <div className="stat-info">
                             <span className="stat-value" style={{ color: "#7c3aed", fontSize: "1.4rem", fontWeight: "700" }}>
-                                {latestMemory
-                                    ? new Date(latestMemory.date).toLocaleDateString("en-US", {
+                                {latestAdventureDate
+                                    ? latestAdventureDate.toLocaleDateString("en-US", {
                                           month: "short",
                                           day: "numeric",
                                           year: "numeric"
@@ -209,143 +298,159 @@ const Dashboard = () => {
 
             {/* Recent Highlight Section */}
             <div style={{ marginTop: "2rem", marginBottom: "2.5rem" }}>
-                <h2 style={{ fontSize: "1.4rem", fontWeight: "700", color: "#0f172a", marginBottom: "1rem" }}>Recent Highlight</h2>
+                <h2 style={{ fontSize: "1.4rem", fontWeight: "700", color: "#0f172a", marginBottom: "1rem" }}>Recent Highlights</h2>
                 
-                {latestMemory ? (
-                    <div
-                        className="glass-panel"
-                        style={{
-                            display: "flex",
-                            flexDirection: "row",
-                            overflow: "hidden",
+                <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "1.5rem" }}>
+                    {/* Left Column: Recent Memory */}
+                    {latestMemory ? (
+                        <div
+                            className="glass-panel"
+                            style={{
+                                display: "flex",
+                                flexDirection: "column",
+                                overflow: "hidden",
+                                borderRadius: "16px",
+                                background: "#ffffff",
+                                border: "1px solid #e2e8f0",
+                                boxShadow: "none"
+                            }}
+                        >
+                            {latestMemory.image ? (
+                                <img
+                                    src={`http://127.0.0.1:5000${latestMemory.image}`}
+                                    alt={latestMemory.title}
+                                    style={{
+                                        width: "100%",
+                                        height: "200px",
+                                        objectFit: "cover"
+                                    }}
+                                />
+                            ) : (
+                                <div style={{ width: "100%", height: "200px", backgroundColor: "#f1f5f9", display: "flex", alignItems: "center", justifyContent: "center", color: "#94a3b8" }}>
+                                    <span style={{ fontSize: "2rem" }}>📸</span>
+                                </div>
+                            )}
+                            <div style={{ padding: "1.5rem", flex: 1, display: "flex", flexDirection: "column" }}>
+                                <div style={{ display: "flex", alignItems: "center", gap: "0.5rem", marginBottom: "0.5rem" }}>
+                                    <span style={{ 
+                                        fontSize: "0.7rem", 
+                                        fontWeight: "700", 
+                                        textTransform: "uppercase", 
+                                        padding: "0.2rem 0.5rem", 
+                                        borderRadius: "4px",
+                                        backgroundColor: "#e6fffa",
+                                        color: "#0d9488"
+                                    }}>
+                                        Memory
+                                    </span>
+                                    <span style={{ color: "#64748b" }}>•</span>
+                                    <span style={{ color: "#64748b", fontSize: "0.85rem" }}>
+                                        {new Date(latestMemory.date).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })}
+                                    </span>
+                                </div>
+                                <h3 style={{ fontSize: "1.3rem", fontWeight: "700", color: "#0f172a", marginBottom: "0.4rem" }}>{latestMemory.title}</h3>
+                                <p style={{ color: "#005B60", fontWeight: "600", fontSize: "0.85rem", marginBottom: "0.6rem" }}>📍 {latestMemory.location}</p>
+                                <p style={{ color: "#475569", lineHeight: "1.5", fontSize: "0.9rem" }}>{latestMemory.description}</p>
+                            </div>
+                        </div>
+                    ) : (
+                        /* India Map Banner Placeholder if no memories exist */
+                        <div className="glass-panel empty-state" style={{
+                            backgroundImage: `linear-gradient(rgba(15, 23, 42, 0.45), rgba(15, 23, 42, 0.45)), url(${earthMap})`,
+                            backgroundSize: "cover",
+                            backgroundPosition: "center",
+                            border: "1px solid #334155",
                             borderRadius: "16px",
-                            background: "#ffffff",
-                            border: "1px solid #e2e8f0",
-                            boxShadow: "none"
-                        }}
-                    >
-                        {latestMemory.image ? (
-                            <img
-                                src={`http://127.0.0.1:5000${latestMemory.image}`}
-                                alt={latestMemory.title}
-                                style={{
-                                    width: "350px",
-                                    height: "230px",
-                                    objectFit: "cover"
-                                }}
-                            />
-                        ) : (
-                            <div style={{ width: "350px", height: "230px", backgroundColor: "#f1f5f9", display: "flex", alignItems: "center", justifyContent: "center", color: "#94a3b8" }}>
-                                <span style={{ fontSize: "2.5rem" }}>📸</span>
-                            </div>
-                        )}
-                        <div style={{ padding: "2.5rem", flex: 1, display: "flex", flexDirection: "column", justifyContent: "center" }}>
-                            <div style={{ display: "flex", alignItems: "center", gap: "0.5rem", color: "#005B60", fontWeight: "600", fontSize: "0.9rem", marginBottom: "0.5rem" }}>
-                                <span>📍 {latestMemory.location}</span>
-                                <span>•</span>
-                                <span>{new Date(latestMemory.date).toLocaleDateString("en-US", { month: "long", day: "numeric", year: "numeric" })}</span>
-                            </div>
-                            <h3 style={{ fontSize: "1.6rem", fontWeight: "700", color: "#0f172a", marginBottom: "0.75rem" }}>{latestMemory.title}</h3>
-                            <p style={{ color: "#475569", lineHeight: "1.6", fontSize: "0.95rem" }}>{latestMemory.description}</p>
-                        </div>
-                    </div>
-                ) : (
-                    /* World Map Empty State Card with Earth Background */
-                    <div className="glass-panel empty-state" style={{
-                        backgroundImage: `linear-gradient(rgba(15, 23, 42, 0.45), rgba(15, 23, 42, 0.45)), url(${earthMap})`,
-                        backgroundSize: "cover",
-                        backgroundPosition: "center",
-                        border: "1px solid #334155",
-                        borderRadius: "16px",
-                        position: "relative",
-                        padding: "6rem 2rem",
-                        overflow: "hidden",
-                        display: "flex",
-                        flexDirection: "column",
-                        alignItems: "center",
-                        justifyContent: "center",
-                        boxShadow: "0 10px 25px -5px rgba(0, 0, 0, 0.3)"
-                    }}>
-                        {/* India Locator Anchor overlaid on Earth */}
-                        <div style={{
-                            position: "absolute",
-                            top: "43.5%",
-                            left: "71%",
-                            transform: "translate(-50%, -50%)",
-                            pointerEvents: "none",
-                            zIndex: 1
-                        }}>
-                            <div style={{
-                                width: "8px",
-                                height: "8px",
-                                borderRadius: "50%",
-                                backgroundColor: "#2dd4bf",
-                                margin: "auto"
-                            }}/>
-                            <div style={{
-                                width: "16px",
-                                height: "16px",
-                                borderRadius: "50%",
-                                border: "2px solid #2dd4bf",
-                                animation: "pulse 2s infinite",
-                                opacity: 0.8
-                            }}/>
-                        </div>
-
-                        {/* Centered Camera/Photo Icon */}
-                        <div style={{ 
-                            zIndex: 2, 
-                            display: "flex", 
-                            flexDirection: "column", 
-                            alignItems: "center", 
+                            padding: "4rem 1.5rem",
+                            display: "flex",
+                            flexDirection: "column",
+                            alignItems: "center",
                             justifyContent: "center",
                             textAlign: "center"
                         }}>
-                            {/* Dark/Brown Camera Overlay SVG in yellowish bubble */}
-                            <div style={{
-                                width: "60px",
-                                height: "60px",
-                                borderRadius: "50%",
-                                backgroundColor: "#fef3c7",
-                                color: "#d97706",
-                                display: "flex",
-                                alignItems: "center",
-                                justifyContent: "center",
-                                marginBottom: "1rem",
-                                border: "2px solid #fde68a"
-                            }}>
-                                <svg width="26" height="26" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24">
-                                    <path strokeLinecap="round" strokeLinejoin="round" d="M6.827 6.175A2.31 2.31 0 015.186 7.23c-.38.054-.757.112-1.134.175C2.999 7.58 2.25 8.507 2.25 9.574V18a2.25 2.25 0 002.25 2.25h15A2.25 2.25 0 0021.75 18V9.574c0-1.067-.75-1.994-1.802-2.169a47.865 47.865 0 00-1.134-.175 2.31 2.31 0 01-1.64-1.055l-.822-1.316a2.192 2.192 0 00-1.736-1.039 48.774 48.774 0 00-5.232 0 2.192 2.192 0 00-1.736 1.039l-.821 1.316z" />
-                                    <circle cx="12" cy="13" r="3" stroke="currentColor" strokeWidth="2.5" />
-                                </svg>
-                            </div>
-
-                            <h3 className="empty-state-title" style={{ color: "#7c3aed", fontSize: "1.5rem", fontWeight: "800", marginBottom: "0.5rem" }}>
-                                No Travel Memories Yet
-                            </h3>
-                            <p className="empty-state-desc" style={{ color: "#4b5563", fontSize: "0.95rem", maxWidth: "390px", marginBottom: "1.8rem", fontWeight: "500" }}>
-                                Your TripVault is empty. Create your first travel memory to see it featured here!
-                            </p>
-                            
-                            <Link to="/memories" className="btn btn-primary" style={{
-                                background: "linear-gradient(135deg, #0e5b60, #4f46e5)",
-                                color: "white",
-                                border: "none",
-                                borderRadius: "8px",
-                                padding: "0.7rem 1.5rem",
-                                fontSize: "0.95rem",
-                                fontWeight: "600",
-                                boxShadow: "0 4px 10px rgba(79, 70, 229, 0.2)"
-                            }}>
-                                + Add First Memory
-                            </Link>
+                            <h3 style={{ color: "#2dd4bf", fontSize: "1.2rem", fontWeight: "800", marginBottom: "0.5rem" }}>No Memories Logged</h3>
+                            <p style={{ color: "#cbd5e1", fontSize: "0.85rem", maxWidth: "250px", marginBottom: "1.2rem" }}>Create your first memory to see it highlighted here!</p>
+                            <Link to="/memories" className="btn btn-primary" style={{ background: "linear-gradient(135deg, #0e5b60, #4f46e5)", color: "white", border: "none", borderRadius: "8px", padding: "0.5rem 1rem", fontSize: "0.85rem", fontWeight: "600" }}>+ Add Memory</Link>
                         </div>
-                    </div>
-                )}
+                    )}
+
+                    {/* Right Column: Recent Trip Plan */}
+                    {latestTrip ? (
+                        <div
+                            className="glass-panel"
+                            style={{
+                                display: "flex",
+                                flexDirection: "column",
+                                overflow: "hidden",
+                                borderRadius: "16px",
+                                background: "#ffffff",
+                                border: "1px solid #e2e8f0",
+                                boxShadow: "none"
+                            }}
+                        >
+                            {latestTrip.image ? (
+                                <img
+                                    src={`http://127.0.0.1:5000${latestTrip.image}`}
+                                    alt={latestTrip.title}
+                                    style={{
+                                        width: "100%",
+                                        height: "200px",
+                                        objectFit: "cover"
+                                    }}
+                                />
+                            ) : (
+                                <div style={{ width: "100%", height: "200px", backgroundColor: "#f1f5f9", display: "flex", alignItems: "center", justifyContent: "center", color: "#94a3b8" }}>
+                                    <span style={{ fontSize: "2rem" }}>✈️</span>
+                                </div>
+                            )}
+                            <div style={{ padding: "1.5rem", flex: 1, display: "flex", flexDirection: "column" }}>
+                                <div style={{ display: "flex", alignItems: "center", gap: "0.5rem", marginBottom: "0.5rem" }}>
+                                    <span style={{ 
+                                        fontSize: "0.7rem", 
+                                        fontWeight: "700", 
+                                        textTransform: "uppercase", 
+                                        padding: "0.2rem 0.5rem", 
+                                        borderRadius: "4px",
+                                        backgroundColor: "#f5f3ff",
+                                        color: "#7c3aed"
+                                    }}>
+                                        Trip Plan
+                                    </span>
+                                    <span style={{ color: "#64748b" }}>•</span>
+                                    <span style={{ color: "#64748b", fontSize: "0.85rem" }}>
+                                        {latestTrip.startDate ? new Date(latestTrip.startDate).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" }) : "Upcoming"}
+                                    </span>
+                                </div>
+                                <h3 style={{ fontSize: "1.3rem", fontWeight: "700", color: "#0f172a", marginBottom: "0.4rem" }}>{latestTrip.title}</h3>
+                                <p style={{ color: "#4f46e5", fontWeight: "600", fontSize: "0.85rem", marginBottom: "0.6rem" }}>📍 {latestTrip.destination}</p>
+                                <p style={{ color: "#475569", lineHeight: "1.5", fontSize: "0.9rem" }}>{latestTrip.description}</p>
+                            </div>
+                        </div>
+                    ) : (
+                        /* Earth map placeholder card if no trips exist */
+                        <div className="glass-panel empty-state" style={{
+                            backgroundImage: `linear-gradient(rgba(15, 23, 42, 0.45), rgba(15, 23, 42, 0.45)), url(${earthMap})`,
+                            backgroundSize: "cover",
+                            backgroundPosition: "center",
+                            border: "1px solid #334155",
+                            borderRadius: "16px",
+                            padding: "4rem 1.5rem",
+                            display: "flex",
+                            flexDirection: "column",
+                            alignItems: "center",
+                            justifyContent: "center",
+                            textAlign: "center"
+                        }}>
+                            <h3 style={{ color: "#a78bfa", fontSize: "1.2rem", fontWeight: "800", marginBottom: "0.5rem" }}>No Trip Planned</h3>
+                            <p style={{ color: "#cbd5e1", fontSize: "0.85rem", maxWidth: "250px", marginBottom: "1.2rem" }}>Plan your next trip to see it highlighted here!</p>
+                            <Link to="/trips" className="btn btn-primary" style={{ background: "linear-gradient(135deg, #4f46e5, #005B60)", color: "white", border: "none", borderRadius: "8px", padding: "0.5rem 1rem", fontSize: "0.85rem", fontWeight: "600" }}>+ Plan a Trip</Link>
+                        </div>
+                    )}
+                </div>
             </div>
 
             {/* Your World Exploration Section (Redesigned) */}
-            <TravelTracker memories={memories} />
+            <TravelTracker memories={memories} trips={trips} />
 
         </div>
     );

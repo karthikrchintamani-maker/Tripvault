@@ -7,6 +7,7 @@ import Register from "./pages/Register";
 import Dashboard from "./pages/Dashboard";
 import Memories from "./pages/Memories";
 import Profile from "./pages/Profile";
+import Trips from "./pages/Trips";
 
 function AppContent() {
   const location = useLocation();
@@ -27,6 +28,7 @@ function AppContent() {
           <Route element={<ProtectedRoute />}>
             <Route path="/dashboard" element={<Dashboard />} />
             <Route path="/memories" element={<Memories />} />
+            <Route path="/trips" element={<Trips />} />
             <Route path="/profile" element={<Profile />} />
           </Route>
 
