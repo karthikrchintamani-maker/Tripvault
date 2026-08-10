@@ -1,17 +1,20 @@
-# TripVault ✈️ - Travel Memory Journal Platform
+# TripVault ✈️ - Travel Memory Journal & Trip Planner Platform
 
-TripVault is a production-ready, beautiful, and secure MERN stack web application that functions as a Travel Memory Journal. It enables users to create accounts, log in securely, and document their travel stories with photos, descriptions, dates, and locations.
+TripVault is a production-ready, beautiful, and secure MERN stack web application that functions as a Travel Memory Journal and Trip Planner. It enables users to create accounts, log in securely, document their travel stories with photos, and organize future trips with a built-in interactive world exploration tracker.
 
 ---
 
 ## 🌟 Features
 
 - **Secure JWT Authentication**: Sign up and login flow using bcrypt password hashing and JSON Web Tokens.
-- **Interactive Travel Diary**: Capture details, dates, and locations of your favorite trips.
-- **Image Upload Support**: Upload real photos of your travels, saved locally on the server.
-- **Clean glassmorphic Dark UI**: Premium styling built using CSS and React.
-- **Responsive Layout**: Works flawlessly on Mobile, Tablet, and Desktop screens.
-- **Automatic Session Persistence**: Keeps users logged in securely using localStorage.
+- **Interactive Travel Tracker Map**: A responsive, offline-friendly Leaflet world map showing visited countries and travel pins.
+  - **Custom Inline SVG Pins**: Memory pins (teal) and Trip pins (violet) rendered locally without external image dependencies.
+  - **Horizontal Tile Wrap Fix**: disabled tile repeating and bounded coordinates to stay inside the world view.
+- **Spelling-Correcting Geocoding**: Automatically geocodes location coordinates using Nominatim API with a Levenshtein-distance fuzzy spelling corrector (e.g. automatically correcting `"londan"` to `"london"`).
+- **Recent Highlights (Side-by-Side)**: Displays your most recent Memory and your most recent Trip Plan side-by-side on the Dashboard, with indicators and type badges.
+- **Trip Planner UI**: Plan upcoming trips with fields for title, destination, dates, rating, and cover image uploads.
+- **Advanced Dashboard Metrics**: Splits analytics into 4 separate metrics: *Total Memories*, *Total Trips*, *Unique Locations*, and *Latest Adventure Date*.
+- **Interactive Swagger Sandbox**: Live interactive API sandbox mounted at `/api-docs` to test security, auth, memories, and trips.
 
 ---
 
@@ -21,11 +24,13 @@ TripVault is a production-ready, beautiful, and secure MERN stack web applicatio
 - **React.js** (Vite-powered boilerplate)
 - **React Router DOM** (Single-page app routing)
 - **Axios** (API requests with automatic token attachment)
+- **Leaflet & React Leaflet** (Interactive geographic mappings)
 - **Vanilla CSS** (Vibrant dark glassmorphic design)
 
 ### Backend
 - **Node.js** & **Express.js** (REST API)
 - **MongoDB** & **Mongoose ODM** (Local database storage)
+- **Swagger UI Express** (Interactive API testing suite)
 - **Multer** (Multipart file upload middleware)
 - **JWT (jsonwebtoken)** (Security & Protected routes)
 - **Bcryptjs** (Password encryption)
@@ -43,13 +48,15 @@ tripvault/
 │   │   ├── components/
 │   │   │   ├── Navbar.jsx
 │   │   │   ├── ProtectedRoute.jsx
-│   │   │   └── MemoryCard.jsx
+│   │   │   ├── MemoryCard.jsx
+│   │   │   └── TravelTracker.jsx (Leaflet World Map UI)
 │   │   ├── pages/
 │   │   │   ├── Login.jsx
 │   │   │   ├── Register.jsx
-│   │   │   ├── Dashboard.jsx
+│   │   │   ├── Dashboard.jsx (Analytics, Maps, and Recent Highlights)
 │   │   │   ├── Profile.jsx
-│   │   │   └── Memories.jsx
+│   │   │   ├── Memories.jsx (Travel Diary)
+│   │   │   └── Trips.jsx    (Trip Planner UI)
 │   │   ├── App.jsx
 │   │   ├── main.jsx
 │   │   └── index.css       (Glassmorphic Dark CSS Theme)
@@ -60,13 +67,15 @@ tripvault/
 │   │   └── authMiddleware.js
 │   ├── models/
 │   │   ├── User.js
-│   │   └── Memory.js
+│   │   ├── Memory.js
+│   │   └── Trip.js         (Trip model with geocode and image fields)
 │   ├── routes/
 │   │   ├── auth.js
-│   │   └── memory.js
+│   │   ├── memory.js
+│   │   └── trips.js        (Trips CRUD endpoints with fuzzy geocoder)
 │   ├── uploads/            (Images folder - created dynamically)
 │   ├── .env                (Environment Configuration)
-│   ├── index.js            (Server Entry point)
+│   ├── index.js            (Server Entry point with Swagger docs)
 │   └── package.json
 │
 └── README.md
@@ -99,6 +108,7 @@ Make sure you have [Node.js](https://nodejs.org/) and [MongoDB](https://www.mong
    npm run dev
    ```
    *The server runs at `http://localhost:5000`*
+   *The Swagger API documentation runs at `http://localhost:5000/api-docs`*
 
 ### Frontend Setup
 1. Open a new terminal and navigate to the client folder:
@@ -121,32 +131,27 @@ Make sure you have [Node.js](https://nodejs.org/) and [MongoDB](https://www.mong
 
 ### Auth APIs
 - **Register User**: `POST /api/auth/register`
-  - Request Body: `{ "name": "John Doe", "email": "john@gmail.com", "password": "password123" }`
-  - Response: `{ "message": "User registered successfully" }`
 - **Login User**: `POST /api/auth/login`
-  - Request Body: `{ "email": "john@gmail.com", "password": "password123" }`
-  - Response: `{ "token": "JWT_TOKEN" }`
 - **Get Logged User details**: `GET /api/auth/me` (Protected)
-  - Headers: `Authorization: Bearer <token>`
-  - Response: User details (excluding password)
 
 ### Memory CRUD APIs
-- **Create Travel Memory**: `POST /api/memory` (Protected, supports `multipart/form-data`)
-  - Form Fields: `title`, `description`, `location`, `date`, `image` (file upload)
-  - Response: Created memory document
+- **Create Travel Memory**: `POST /api/memory` (Protected, supports image upload)
 - **Get Logged User's Memories**: `GET /api/memory` (Protected)
-  - Response: Array of memory objects sorted by date
-- **Update Memory**: `PUT /api/memory/:id` (Protected, supports `multipart/form-data`)
-  - Form Fields: `title`, `description`, `location`, `date`, `image` (optional file upload)
-  - Response: Updated memory document
+- **Update Memory**: `PUT /api/memory/:id` (Protected, supports image upload)
 - **Delete Memory**: `DELETE /api/memory/:id` (Protected)
-  - Response: `{ "message": "Memory removed successfully" }`
+
+### Trip CRUD APIs
+- **Create Trip Plan**: `POST /api/trips` (Protected, supports image upload & auto-geocoding)
+- **Get Logged User's Trips**: `GET /api/trips` (Protected)
+- **Get Single Trip**: `GET /api/trips/:id` (Protected)
+- **Update Trip Plan**: `PUT /api/trips/:id` (Protected, supports image upload & re-geocoding)
+- **Delete Trip Plan**: `DELETE /api/trips/:id` (Protected)
 
 ---
 
-## 🔒 Security Implementation Details
+## 🔒 Security & Optimization Implementation
 
-- **Password Hashing**: Implemented pre-save mongoose hooks to automatically hash passwords with Bcrypt before saving.
-- **Route Guarding**: JWT authorization headers are validated via custom middleware before letting requests access memory APIs.
-- **Ownership Verification**: Database entries check if the `user` reference matches the logged-in user before letting them modify or delete items.
-- **Dynamic File Validations**: Images are strictly checked on mimetype and extensions (`jpg|jpeg|png|webp|gif`) with a 5MB size limit using `multer` configurations.
+- **Spelling-Correcting Geocoder**: Uses Levenshtein-distance fuzzy checking to resolve misspelled city/country inputs before querying OSM.
+- **Double Highlight Panels**: Keeps Memory journal entry flow and Trip Planner flow cleanly separated on the frontend dashboard.
+- **Local Inline SVG Render**: Resolves Leaflet marker broken image issues in restricted network environments by injecting custom pins directly as raw inline SVG string elements.
+- **Auto Image Cleanup**: Detects updates/deletions on memories and trips and automatically deletes matching media files from `server/uploads` to save storage.
