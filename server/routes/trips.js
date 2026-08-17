@@ -5,6 +5,7 @@ const path = require("path");
 const fs = require("fs");
 const Trip = require("../models/Trip");
 const { protect } = require("../middleware/authMiddleware");
+const cloudinaryUpload = require("../middleware/upload");
 
 // Ensure uploads folder exists
 const uploadsDir = path.join(__dirname, "../uploads");
@@ -186,7 +187,7 @@ async function geocodeDestination(destination) {
  *       500:
  *         description: Server error
  */
-router.post("/", protect, upload.single("image"), async (req, res) => {
+router.post("/", protect, cloudinaryUpload.single("image"), async (req, res) => {
     try {
         const { title, destination, startDate, endDate, description, rating } = req.body;
 
@@ -195,8 +196,8 @@ router.post("/", protect, upload.single("image"), async (req, res) => {
         }
 
         let imagePath = "";
-        if (req.file) {
-            imagePath = `/uploads/${req.file.filename}`;
+        if (req.file && req.file.path) {
+            imagePath = req.file.path;
         }
 
         // Geocode destination
@@ -210,6 +211,7 @@ router.post("/", protect, upload.single("image"), async (req, res) => {
             description: description || "",
             rating: rating !== undefined ? Number(rating) : undefined,
             image: imagePath,
+            coverImage: imagePath,
             latitude: geo.latitude,
             longitude: geo.longitude,
             country: geo.country,
@@ -350,7 +352,7 @@ router.get("/:id", protect, async (req, res) => {
  *       500:
  *         description: Server error
  */
-router.put("/:id", protect, upload.single("image"), async (req, res) => {
+router.put("/:id", protect, cloudinaryUpload.single("image"), async (req, res) => {
     try {
         const { title, destination, startDate, endDate, description, rating } = req.body;
         let trip = await Trip.findById(req.params.id);
@@ -364,14 +366,14 @@ router.put("/:id", protect, upload.single("image"), async (req, res) => {
         }
 
         let imagePath = trip.image;
-        if (req.file) {
-            if (trip.image) {
+        if (req.file && req.file.path) {
+            if (trip.image && !trip.image.startsWith("http")) {
                 const oldPath = path.join(__dirname, "..", trip.image);
                 if (fs.existsSync(oldPath)) {
                     fs.unlinkSync(oldPath);
                 }
             }
-            imagePath = `/uploads/${req.file.filename}`;
+            imagePath = req.file.path;
         }
 
         // If destination changed, re-geocode
@@ -390,6 +392,7 @@ router.put("/:id", protect, upload.single("image"), async (req, res) => {
         trip.description = description !== undefined ? description : trip.description;
         trip.rating = rating !== undefined ? Number(rating) : trip.rating;
         trip.image = imagePath;
+        trip.coverImage = imagePath;
 
         const updatedTrip = await trip.save();
         res.json(updatedTrip);
@@ -449,6 +452,71 @@ router.delete("/:id", protect, async (req, res) => {
     } catch (error) {
         console.error("Delete trip error:", error);
         res.status(500).json({ message: "Server error" });
+    }
+});
+
+/**
+ * @openapi
+ * /api/trips/{id}/upload:
+ *   post:
+ *     summary: Upload a photo to a trip
+ *     tags: [Trips]
+ *     security:
+ *       - BearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: Trip ID
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         multipart/form-data:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - image
+ *             properties:
+ *               image:
+ *                 type: string
+ *                 format: binary
+ *     responses:
+ *       200:
+ *         description: Photo uploaded successfully and attached to trip
+ *       401:
+ *         description: Unauthorized
+ *       404:
+ *         description: Trip not found
+ *       500:
+ *         description: Server error
+ */
+router.post("/:id/upload", protect, cloudinaryUpload.single("image"), async (req, res) => {
+    try {
+        const trip = await Trip.findById(req.params.id);
+        if (!trip) {
+            return res.status(404).json({ message: "Trip not found" });
+        }
+        if (trip.user.toString() !== req.user.id) {
+            return res.status(401).json({ message: "Not authorized" });
+        }
+        if (!req.file || !req.file.path) {
+            return res.status(400).json({ message: "Please upload an image" });
+        }
+
+        const photoUrl = req.file.path;
+        trip.photos.push(photoUrl);
+        await trip.save();
+
+        res.json({
+            message: "Photo uploaded successfully",
+            photoUrl,
+            photos: trip.photos
+        });
+    } catch (error) {
+        console.error("Upload trip photo error:", error);
+        res.status(500).json({ message: error.message || "Server error" });
     }
 });
 

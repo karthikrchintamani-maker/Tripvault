@@ -5,6 +5,7 @@ import API from "../api/axios";
 const Register = () => {
     const [formData, setFormData] = useState({
         name: "",
+        username: "",
         email: "",
         password: "",
         confirmPassword: ""
@@ -21,7 +22,7 @@ const Register = () => {
         }
     }, [navigate]);
 
-    const { name, email, password, confirmPassword } = formData;
+    const { name, username, email, password, confirmPassword } = formData;
 
     const onChange = (e) => {
         setFormData({ ...formData, [e.target.name]: e.target.value });
@@ -45,9 +46,9 @@ const Register = () => {
         setLoading(true);
 
         try {
-            const res = await API.post("/auth/register", { name, email, password });
+            const res = await API.post("/auth/register", { name, username, email, password });
             setSuccess(res.data.message || "Registration successful! Redirecting to login...");
-            setFormData({ name: "", email: "", password: "", confirmPassword: "" });
+            setFormData({ name: "", username: "", email: "", password: "", confirmPassword: "" });
             setTimeout(() => {
                 navigate("/login");
             }, 2000);
@@ -148,6 +149,26 @@ const Register = () => {
                                     onChange={onChange}
                                     className="auth-input"
                                     placeholder="John Doe"
+                                    required
+                                />
+                            </div>
+
+                            {/* Username */}
+                            <label className="auth-label" htmlFor="username">Username</label>
+                            <div className="auth-input-wrapper" style={{ marginBottom: "1rem" }}>
+                                <span className="auth-input-icon">
+                                    <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                                        <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 16h-2v-2h2v2zm1.07-7.75l-.9.92C12.45 11.9 12 12.5 12 14h-2v-.5c0-1.1.45-2.1 1.17-2.83l1.24-1.26c.37-.36.59-.86.59-1.41 0-1.1-.9-2-2-2s-2 .9-2 2H7c0-2.76 2.24-5 5-5s5 2.24 5 5c0 1.04-.42 1.99-1.07 2.75z"/>
+                                    </svg>
+                                </span>
+                                <input
+                                    type="text"
+                                    id="username"
+                                    name="username"
+                                    value={username}
+                                    onChange={onChange}
+                                    className="auth-input"
+                                    placeholder="johndoe123"
                                     required
                                 />
                             </div>

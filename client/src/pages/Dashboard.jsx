@@ -9,6 +9,24 @@ const Dashboard = () => {
     const [memories, setMemories] = useState([]);
     const [trips, setTrips] = useState([]);
     const [loading, setLoading] = useState(true);
+    
+    // Edit Profile state
+    const [isEditProfileOpen, setIsEditProfileOpen] = useState(false);
+    const [profileForm, setProfileForm] = useState({
+        username: "",
+        bio: ""
+    });
+    const [profileError, setProfileError] = useState("");
+    const [profileSuccess, setProfileSuccess] = useState("");
+
+    useEffect(() => {
+        if (user) {
+            setProfileForm({
+                username: user.username || "",
+                bio: user.bio || ""
+            });
+        }
+    }, [user]);
 
     useEffect(() => {
         const fetchData = async () => {
@@ -30,6 +48,39 @@ const Dashboard = () => {
 
         fetchData();
     }, []);
+
+    const handleProfileInputChange = (e) => {
+        const { name, value } = e.target;
+        setProfileForm({
+            ...profileForm,
+            [name]: value
+        });
+        if (profileError) setProfileError("");
+    };
+
+    const handleProfileSubmit = async (e) => {
+        e.preventDefault();
+        setProfileError("");
+        setProfileSuccess("");
+        try {
+            const res = await API.put("/users/profile", {
+                username: profileForm.username,
+                bio: profileForm.bio
+            });
+            setUser({
+                ...user,
+                username: res.data.username,
+                bio: res.data.bio
+            });
+            setProfileSuccess("Profile updated successfully!");
+            setTimeout(() => {
+                setIsEditProfileOpen(false);
+                setProfileSuccess("");
+            }, 1500);
+        } catch (err) {
+            setProfileError(err.response?.data?.message || "Failed to update profile");
+        }
+    };
 
     if (loading) {
         return (
@@ -118,17 +169,47 @@ const Dashboard = () => {
                 <p style={{ color: "#475569", fontSize: "1rem", lineHeight: "1.6", maxWidth: "650px", marginBottom: "1.5rem" }}>
                     Capture and cherish your travel experiences. Maintain your personal diary and relive your favorite memories from all around the world.
                 </p>
-                <Link to="/memories" className="btn btn-primary" style={{ 
-                    backgroundColor: "#005B60", 
-                    color: "white", 
-                    borderRadius: "8px", 
-                    padding: "0.65rem 1.25rem",
-                    fontSize: "0.95rem",
-                    fontWeight: "600",
-                    boxShadow: "none"
-                }}>
-                    📁 Manage Journal
-                </Link>
+                <div style={{ display: "flex", gap: "1rem", flexWrap: "wrap" }}>
+                    <Link to="/memories" className="btn btn-primary" style={{ 
+                        backgroundColor: "#005B60", 
+                        color: "white", 
+                        borderRadius: "8px", 
+                        padding: "0.65rem 1.25rem",
+                        fontSize: "0.95rem",
+                        fontWeight: "600",
+                        boxShadow: "none",
+                        textDecoration: "none"
+                    }}>
+                        📁 Manage Journal
+                    </Link>
+                    {user?.username && (
+                        <Link to={`/profile/${user.username}`} className="btn" style={{ 
+                            backgroundColor: "#0284c7", 
+                            color: "white", 
+                            borderRadius: "8px", 
+                            padding: "0.65rem 1.25rem",
+                            fontSize: "0.95rem",
+                            fontWeight: "600",
+                            textDecoration: "none",
+                            display: "inline-flex",
+                            alignItems: "center"
+                        }}>
+                            👤 My Profile
+                        </Link>
+                    )}
+                    <button onClick={() => setIsEditProfileOpen(true)} className="btn" style={{ 
+                        backgroundColor: "#4f46e5", 
+                        color: "white", 
+                        borderRadius: "8px", 
+                        padding: "0.65rem 1.25rem",
+                        fontSize: "0.95rem",
+                        fontWeight: "600",
+                        border: "none",
+                        cursor: "pointer"
+                    }}>
+                        ⚙️ Edit Profile
+                    </button>
+                </div>
             </div>
 
             {/* Quick Metrics Grid */}
@@ -317,7 +398,7 @@ const Dashboard = () => {
                         >
                             {latestMemory.image ? (
                                 <img
-                                    src={`http://127.0.0.1:5000${latestMemory.image}`}
+                                    src={latestMemory.image.startsWith("http") ? latestMemory.image : `http://127.0.0.1:5000${latestMemory.image}`}
                                     alt={latestMemory.title}
                                     style={{
                                         width: "100%",
@@ -390,7 +471,7 @@ const Dashboard = () => {
                         >
                             {latestTrip.image ? (
                                 <img
-                                    src={`http://127.0.0.1:5000${latestTrip.image}`}
+                                    src={latestTrip.image.startsWith("http") ? latestTrip.image : `http://127.0.0.1:5000${latestTrip.image}`}
                                     alt={latestTrip.title}
                                     style={{
                                         width: "100%",
@@ -451,6 +532,91 @@ const Dashboard = () => {
 
             {/* Your World Exploration Section (Redesigned) */}
             <TravelTracker memories={memories} trips={trips} />
+
+            {/* Edit Profile Modal */}
+            {isEditProfileOpen && (
+                <div className="modal-overlay" onClick={() => setIsEditProfileOpen(false)} style={{
+                    position: "fixed",
+                    top: 0,
+                    left: 0,
+                    right: 0,
+                    bottom: 0,
+                    backgroundColor: "rgba(15, 23, 42, 0.4)",
+                    backdropFilter: "blur(4px)",
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    zIndex: 9999
+                }}>
+                    <div className="glass-panel" onClick={(e) => e.stopPropagation()} style={{
+                        background: "#ffffff",
+                        border: "1px solid #e2e8f0",
+                        borderRadius: "16px",
+                        padding: "2rem",
+                        width: "90%",
+                        maxWidth: "450px",
+                        boxShadow: "0 20px 25px -5px rgba(0, 0, 0, 0.1)"
+                    }}>
+                        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "1.5rem" }}>
+                            <h2 style={{ fontSize: "1.5rem", fontWeight: "800", color: "#0f172a", margin: 0 }}>
+                                Edit Profile
+                            </h2>
+                            <button 
+                                onClick={() => setIsEditProfileOpen(false)}
+                                style={{
+                                    background: "transparent",
+                                    border: "none",
+                                    fontSize: "1.5rem",
+                                    color: "#64748b",
+                                    cursor: "pointer"
+                                }}
+                            >
+                                &times;
+                            </button>
+                        </div>
+
+                        {profileError && <div className="alert alert-danger" style={{ marginBottom: "1rem", padding: "0.5rem 1rem", borderRadius: "6px" }}>{profileError}</div>}
+                        {profileSuccess && <div className="alert alert-success" style={{ marginBottom: "1rem", padding: "0.5rem 1rem", borderRadius: "6px" }}>{profileSuccess}</div>}
+
+                        <form onSubmit={handleProfileSubmit}>
+                            <div className="form-group" style={{ marginBottom: "1rem" }}>
+                                <label className="form-label" style={{ fontWeight: "600", fontSize: "0.9rem", color: "#475569", display: "block", marginBottom: "0.25rem" }}>Username</label>
+                                <input
+                                    type="text"
+                                    name="username"
+                                    value={profileForm.username}
+                                    onChange={handleProfileInputChange}
+                                    className="form-input"
+                                    placeholder="johndoe123"
+                                    required
+                                    style={{ width: "100%", padding: "0.5rem", borderRadius: "6px", border: "1px solid #cbd5e1" }}
+                                />
+                            </div>
+
+                            <div className="form-group" style={{ marginBottom: "1.5rem" }}>
+                                <label className="form-label" style={{ fontWeight: "600", fontSize: "0.9rem", color: "#475569", display: "block", marginBottom: "0.25rem" }}>Bio</label>
+                                <textarea
+                                    name="bio"
+                                    value={profileForm.bio}
+                                    onChange={handleProfileInputChange}
+                                    className="form-input"
+                                    placeholder="Tell others about your travels..."
+                                    style={{ width: "100%", minHeight: "80px", padding: "0.5rem", borderRadius: "6px", border: "1px solid #cbd5e1" }}
+                                />
+                            </div>
+
+                            <div style={{ display: "flex", gap: "1rem" }}>
+                                <button type="submit" className="btn btn-primary" style={{ flex: 1, backgroundColor: "#005B60", border: "none", color: "white", borderRadius: "8px", padding: "0.75rem", fontWeight: "600", cursor: "pointer" }}>
+                                    Save Profile
+                                </button>
+                                <button type="button" onClick={() => setIsEditProfileOpen(false)} className="btn" style={{ flex: 1, backgroundColor: "#e2e8f0", border: "none", color: "#475569", borderRadius: "8px", padding: "0.75rem", fontWeight: "600", cursor: "pointer" }}>
+                                    Cancel
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            )}
 
         </div>
     );

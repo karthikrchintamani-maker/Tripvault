@@ -26,6 +26,13 @@ const tripSchema = new mongoose.Schema({
     image: {
         type: String
     },
+    coverImage: {
+        type: String
+    },
+    photos: {
+        type: [String],
+        default: []
+    },
     latitude: {
         type: Number
     },

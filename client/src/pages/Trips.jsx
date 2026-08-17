@@ -72,7 +72,7 @@ const Trips = () => {
             rating: trip.rating || 5
         });
         setImageFile(null);
-        setImagePreview(trip.image ? `http://127.0.0.1:5000${trip.image}` : "");
+        setImagePreview(trip.image ? (trip.image.startsWith("http") ? trip.image : `http://127.0.0.1:5000${trip.image}`) : "");
         setIsModalOpen(true);
     };
 
@@ -239,7 +239,7 @@ const Trips = () => {
                         >
                             {trip.image ? (
                                 <img 
-                                    src={`http://127.0.0.1:5000${trip.image}`} 
+                                    src={trip.image.startsWith("http") ? trip.image : `http://127.0.0.1:5000${trip.image}`} 
                                     alt={trip.title} 
                                     style={{
                                         width: "100%",

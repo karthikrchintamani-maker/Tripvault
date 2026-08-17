@@ -8,6 +8,7 @@ import Dashboard from "./pages/Dashboard";
 import Memories from "./pages/Memories";
 import Profile from "./pages/Profile";
 import Trips from "./pages/Trips";
+import PublicProfile from "./pages/PublicProfile";
 
 function AppContent() {
   const location = useLocation();
@@ -23,6 +24,7 @@ function AppContent() {
           <Route path="/" element={<Navigate to="/login" replace />} />
           <Route path="/login" element={<Login />} />
           <Route path="/register" element={<Register />} />
+          <Route path="/profile/:username" element={<PublicProfile />} />
 
           {/* Protected Routes */}
           <Route element={<ProtectedRoute />}>

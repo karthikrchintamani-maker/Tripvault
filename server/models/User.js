@@ -7,6 +7,12 @@ const UserSchema = new mongoose.Schema({
         required: [true, "Name is required"],
         trim: true
     },
+    username: {
+        type: String,
+        required: [true, "Username is required"],
+        unique: true,
+        trim: true
+    },
     email: {
         type: String,
         required: [true, "Email is required"],
@@ -22,6 +28,14 @@ const UserSchema = new mongoose.Schema({
         type: String,
         required: [true, "Password is required"],
         minlength: [6, "Password must be at least 6 characters"]
+    },
+    bio: {
+        type: String,
+        default: ""
+    },
+    avatar: {
+        type: String,
+        default: ""
     }
 }, {
     timestamps: true

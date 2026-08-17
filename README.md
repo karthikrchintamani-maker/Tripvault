@@ -6,15 +6,17 @@ TripVault is a production-ready, beautiful, and secure MERN stack web applicatio
 
 ## 🌟 Features
 
-- **Secure JWT Authentication**: Sign up and login flow using bcrypt password hashing and JSON Web Tokens.
+- **Secure JWT Authentication**: Sign up and login flow using bcrypt password hashing, username requirements, and JSON Web Tokens.
+- **Cloud Media Storage (Cloudinary)**: Fully integrated file uploading utilizing Cloudinary to save cover images and trip photos securely.
+- **Public Travel Profiles**: Unauthenticated profile route `/profile/:username` to view a traveler's bio and all trip plans.
 - **Interactive Travel Tracker Map**: A responsive, offline-friendly Leaflet world map showing visited countries and travel pins.
   - **Custom Inline SVG Pins**: Memory pins (teal) and Trip pins (violet) rendered locally without external image dependencies.
   - **Horizontal Tile Wrap Fix**: disabled tile repeating and bounded coordinates to stay inside the world view.
-- **Spelling-Correcting Geocoding**: Automatically geocodes location coordinates using Nominatim API with a Levenshtein-distance fuzzy spelling corrector (e.g. automatically correcting `"londan"` to `"london"`).
-- **Recent Highlights (Side-by-Side)**: Displays your most recent Memory and your most recent Trip Plan side-by-side on the Dashboard, with indicators and type badges.
+- **Spelling-Correcting Geocoding**: Automatically geocodes location coordinates using Nominatim API with a Levenshtein-distance fuzzy spelling corrector.
+- **Recent Highlights (Side-by-Side)**: Displays your most recent Memory and your most recent Trip Plan side-by-side on the Dashboard, with support for cloud cover images.
 - **Trip Planner UI**: Plan upcoming trips with fields for title, destination, dates, rating, and cover image uploads.
 - **Advanced Dashboard Metrics**: Splits analytics into 4 separate metrics: *Total Memories*, *Total Trips*, *Unique Locations*, and *Latest Adventure Date*.
-- **Interactive Swagger Sandbox**: Live interactive API sandbox mounted at `/api-docs` to test security, auth, memories, and trips.
+- **Interactive Swagger Sandbox**: Live interactive API sandbox mounted at `/api-docs` to test security, auth, memories, trips, and user profiles.
 
 ---
 

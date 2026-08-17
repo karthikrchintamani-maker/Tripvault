@@ -55,15 +55,21 @@ const generateToken = (id) => {
  */
 router.post("/register", async (req, res) => {
     try {
-        const { name, email, password } = req.body;
+        const { name, username, email, password } = req.body;
 
         // Simple validation
-        if (!name || !email || !password) {
+        if (!name || !username || !email || !password) {
             return res.status(400).json({ message: "Please enter all fields" });
         }
 
         if (password.length < 6) {
             return res.status(400).json({ message: "Password must be at least 6 characters" });
+        }
+
+        // Check for existing username
+        const usernameExists = await User.findOne({ username: username.toLowerCase().trim() });
+        if (usernameExists) {
+            return res.status(400).json({ message: "Username is already taken" });
         }
 
         // Check for existing user
@@ -75,6 +81,7 @@ router.post("/register", async (req, res) => {
         // Create user
         const user = await User.create({
             name,
+            username: username.toLowerCase().trim(),
             email,
             password
         });
@@ -149,6 +156,14 @@ router.post("/login", async (req, res) => {
         const isMatch = await user.matchPassword(password);
         if (!isMatch) {
             return res.status(400).json({ message: "Invalid credentials" });
+        }
+
+        // Generate username if not exists (for existing accounts)
+        if (!user.username) {
+            const baseUsername = user.email.split("@")[0].replace(/[^a-zA-Z0-9]/g, "").toLowerCase();
+            const randomSuffix = Math.floor(100 + Math.random() * 900);
+            user.username = `${baseUsername}${randomSuffix}`;
+            await user.save();
         }
 
         res.json({

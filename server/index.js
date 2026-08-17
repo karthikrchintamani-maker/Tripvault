@@ -53,6 +53,7 @@ app.use("/api-docs", swaggerUi.serve, swaggerUi.setup(swaggerDocs));
 app.use("/api/auth", require("./routes/auth"));
 app.use("/api/memory", require("./routes/memory"));
 app.use("/api/trips", require("./routes/trips"));
+app.use("/api/users", require("./routes/users"));
 
 // Test root route
 app.get("/", (req, res) => {
