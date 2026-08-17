@@ -1,41 +1,71 @@
-# TripVault ✈️ - Travel Memory Journal & Trip Planner Platform
+# TripVault ✈️ — Travel Memory Journal & Trip Planner Platform
 
-TripVault is a production-ready, beautiful, and secure MERN stack web application that functions as a Travel Memory Journal and Trip Planner. It enables users to create accounts, log in securely, document their travel stories with photos, and organize future trips with a built-in interactive world exploration tracker.
+TripVault is a production-ready, full-stack MERN web application that functions as a Travel Memory Journal and Trip Planner. Users can create accounts, log travel stories with photos, plan future trips, upload profile avatars, and explore public traveler profiles — all backed by Cloudinary cloud media storage.
 
 ---
 
 ## 🌟 Features
 
-- **Secure JWT Authentication**: Sign up and login flow using bcrypt password hashing, username requirements, and JSON Web Tokens.
-- **Cloud Media Storage (Cloudinary)**: Fully integrated file uploading utilizing Cloudinary to save cover images and trip photos securely.
-- **Public Travel Profiles**: Unauthenticated profile route `/profile/:username` to view a traveler's bio and all trip plans.
-- **Interactive Travel Tracker Map**: A responsive, offline-friendly Leaflet world map showing visited countries and travel pins.
-  - **Custom Inline SVG Pins**: Memory pins (teal) and Trip pins (violet) rendered locally without external image dependencies.
-  - **Horizontal Tile Wrap Fix**: disabled tile repeating and bounded coordinates to stay inside the world view.
-- **Spelling-Correcting Geocoding**: Automatically geocodes location coordinates using Nominatim API with a Levenshtein-distance fuzzy spelling corrector.
-- **Recent Highlights (Side-by-Side)**: Displays your most recent Memory and your most recent Trip Plan side-by-side on the Dashboard, with support for cloud cover images.
-- **Trip Planner UI**: Plan upcoming trips with fields for title, destination, dates, rating, and cover image uploads.
-- **Advanced Dashboard Metrics**: Splits analytics into 4 separate metrics: *Total Memories*, *Total Trips*, *Unique Locations*, and *Latest Adventure Date*.
-- **Interactive Swagger Sandbox**: Live interactive API sandbox mounted at `/api-docs` to test security, auth, memories, trips, and user profiles.
+### 🔐 Authentication
+- **Secure JWT Authentication** — Sign up / login flow using bcrypt password hashing and JSON Web Tokens.
+- **Username Support** — Every user gets a unique username at registration, used for public profile URLs.
+
+### 👤 Profile & Avatar
+- **Redesigned Profile Page** — Beautiful banner with AI-generated illustrated mountain scenery, cloud, dotted flight trail, and paper-plane SVG.
+- **Avatar Upload** — Click the camera badge on the profile avatar to upload a profile photo directly to Cloudinary.
+- **Edit Profile Modal** — Click the "Explorer" button to open a modal and update your **username** and **bio** in real time.
+- **Public Traveler Profiles** — Unauthenticated route `/profile/:username` to view any traveler's bio and trip plans.
+
+### 🗂️ Journal & Stats
+- **Travel Memories** — Log travel stories with title, location, date, emotion, and optional photo uploads.
+- **Trip Planner** — Plan upcoming trips with title, destination, dates, rating, and cover image uploads.
+- **Smart Stats** — Profile page shows:
+  - 📅 **Member Since** date
+  - 📖 **Journal Entries** — Combined count of memories + trips with breakdown subtitle (e.g. `2 Memories · 3 Trips`)
+  - 📍 **Places Visited** — Unique locations from both memories and trips
+
+### 🖼️ Cloud Media Storage (Cloudinary)
+- Trip cover images and gallery photos uploaded directly to Cloudinary.
+- Profile avatars uploaded to Cloudinary via `PUT /api/users/profile/avatar`.
+- `multer-storage-cloudinary` used as Multer storage adapter — no local file storage required.
+
+### 🗺️ Interactive World Map
+- **Leaflet Map** — Responsive offline-friendly world map with memory pins (teal) and trip pins (violet).
+- **Custom Inline SVG Pins** — Rendered without any external image dependencies.
+- **Fuzzy Geocoding** — Automatically corrects misspelled city/country names using Levenshtein-distance before querying the Nominatim OSM API.
+
+### 📊 Dashboard
+- **4 Split Metrics** — Total Memories, Total Trips, Unique Locations, Latest Adventure Date.
+- **Recent Highlights** — Most recent Memory and most recent Trip displayed side-by-side with cover images.
+- **Edit Profile** — Update bio and username directly from the dashboard.
+
+### 📖 API Documentation
+- **Interactive Swagger Sandbox** at `/api-docs` to test auth, memories, trips, and user profile endpoints.
 
 ---
 
 ## 🛠️ Tech Stack
 
 ### Frontend
-- **React.js** (Vite-powered boilerplate)
-- **React Router DOM** (Single-page app routing)
-- **Axios** (API requests with automatic token attachment)
-- **Leaflet & React Leaflet** (Interactive geographic mappings)
-- **Vanilla CSS** (Vibrant dark glassmorphic design)
+| Tool | Purpose |
+|---|---|
+| **React.js** (Vite) | Component-based UI |
+| **React Router DOM** | Client-side routing |
+| **Axios** | HTTP requests with JWT auto-attach |
+| **Leaflet & React Leaflet** | Interactive world map |
+| **Vanilla CSS** | Clean, responsive design |
 
 ### Backend
-- **Node.js** & **Express.js** (REST API)
-- **MongoDB** & **Mongoose ODM** (Local database storage)
-- **Swagger UI Express** (Interactive API testing suite)
-- **Multer** (Multipart file upload middleware)
-- **JWT (jsonwebtoken)** (Security & Protected routes)
-- **Bcryptjs** (Password encryption)
+| Tool | Purpose |
+|---|---|
+| **Node.js & Express.js** | REST API server |
+| **MongoDB & Mongoose** | Database & ODM |
+| **Cloudinary** | Cloud media storage |
+| **multer-storage-cloudinary** | Multer adapter for Cloudinary |
+| **Multer** | Multipart file upload middleware |
+| **JWT (jsonwebtoken)** | Auth token generation & validation |
+| **Bcryptjs** | Password hashing |
+| **Swagger UI Express** | Interactive API sandbox |
 
 ---
 
@@ -43,43 +73,49 @@ TripVault is a production-ready, beautiful, and secure MERN stack web applicatio
 
 ```text
 tripvault/
-├── client/                 (React Vite Frontend)
+├── client/                         (React Vite Frontend)
+│   ├── public/
+│   │   ├── profile_banner_mountains.jpg  (AI-generated banner background)
+│   │   └── bio_card_mountains.jpg        (AI-generated bio card illustration)
 │   ├── src/
 │   │   ├── api/
-│   │   │   └── axios.js    (Axios client configuration)
+│   │   │   └── axios.js            (Axios client with auth interceptor)
 │   │   ├── components/
 │   │   │   ├── Navbar.jsx
 │   │   │   ├── ProtectedRoute.jsx
 │   │   │   ├── MemoryCard.jsx
-│   │   │   └── TravelTracker.jsx (Leaflet World Map UI)
+│   │   │   └── TravelTracker.jsx   (Leaflet World Map)
 │   │   ├── pages/
 │   │   │   ├── Login.jsx
-│   │   │   ├── Register.jsx
-│   │   │   ├── Dashboard.jsx (Analytics, Maps, and Recent Highlights)
-│   │   │   ├── Profile.jsx
-│   │   │   ├── Memories.jsx (Travel Diary)
-│   │   │   └── Trips.jsx    (Trip Planner UI)
+│   │   │   ├── Register.jsx        (+ username field)
+│   │   │   ├── Dashboard.jsx       (Metrics, Map, Edit Profile)
+│   │   │   ├── Profile.jsx         (Redesigned: avatar upload, edit modal, stats)
+│   │   │   ├── PublicProfile.jsx   (Public traveler profile view)
+│   │   │   ├── Memories.jsx        (Travel Diary)
+│   │   │   └── Trips.jsx           (Trip Planner with Cloudinary images)
 │   │   ├── App.jsx
 │   │   ├── main.jsx
-│   │   └── index.css       (Glassmorphic Dark CSS Theme)
+│   │   └── index.css
 │   └── package.json
 │
-├── server/                 (Node Express Backend)
+├── server/                         (Node Express Backend)
 │   ├── middleware/
-│   │   └── authMiddleware.js
+│   │   ├── authMiddleware.js       (JWT protect middleware)
+│   │   └── upload.js               (Cloudinary + Multer storage config)
 │   ├── models/
-│   │   ├── User.js
+│   │   ├── User.js                 (+ username, bio, avatar fields)
 │   │   ├── Memory.js
-│   │   └── Trip.js         (Trip model with geocode and image fields)
+│   │   └── Trip.js                 (+ coverImage, photos fields)
 │   ├── routes/
-│   │   ├── auth.js
+│   │   ├── auth.js                 (Register/Login + username handling)
 │   │   ├── memory.js
-│   │   └── trips.js        (Trips CRUD endpoints with fuzzy geocoder)
-│   ├── uploads/            (Images folder - created dynamically)
-│   ├── .env                (Environment Configuration)
-│   ├── index.js            (Server Entry point with Swagger docs)
+│   │   ├── trips.js                (CRUD + Cloudinary image upload)
+│   │   └── users.js                (Profile update + avatar upload)
+│   ├── .env                        (Environment config)
+│   ├── index.js                    (Server entry + Swagger docs)
 │   └── package.json
 │
+├── push.ps1                        (PowerShell quick-push script)
 └── README.md
 ```
 
@@ -88,72 +124,126 @@ tripvault/
 ## ⚙️ Installation & Setup
 
 ### Prerequisites
-Make sure you have [Node.js](https://nodejs.org/) and [MongoDB](https://www.mongodb.com/try/download/community) installed and running locally.
+- [Node.js](https://nodejs.org/) v18+
+- [MongoDB](https://www.mongodb.com/try/download/community) running locally
+- [Cloudinary account](https://cloudinary.com/) (free tier works fine)
 
 ### Backend Setup
-1. Open a terminal and navigate to the backend folder:
+
+1. Navigate to the server folder:
    ```bash
    cd server
    ```
-2. Install the server dependencies:
+
+2. Install dependencies:
    ```bash
    npm install
    ```
-3. Configure the `.env` file inside `server/`:
+
+3. Create a `.env` file inside `server/`:
    ```env
    PORT=5000
    MONGO_URI=mongodb://127.0.0.1:27017/tripvault
-   JWT_SECRET=mysecretkey
+   JWT_SECRET=your_jwt_secret_key
+
+   CLOUDINARY_CLOUD_NAME=your_cloud_name
+   CLOUDINARY_API_KEY=your_api_key
+   CLOUDINARY_API_SECRET=your_api_secret
    ```
-4. Start the Express backend:
+
+4. Start the backend:
    ```bash
    npm run dev
    ```
-   *The server runs at `http://localhost:5000`*
-   *The Swagger API documentation runs at `http://localhost:5000/api-docs`*
+   - API server → `http://localhost:5000`
+   - Swagger docs → `http://localhost:5000/api-docs`
 
 ### Frontend Setup
-1. Open a new terminal and navigate to the client folder:
+
+1. Navigate to the client folder:
    ```bash
    cd client
    ```
-2. Install the client dependencies:
+
+2. Install dependencies:
    ```bash
    npm install
    ```
-3. Start the Vite React development server:
+
+3. Start the dev server:
    ```bash
    npm run dev
    ```
-   *The web client runs at `http://localhost:5173`*
+   - Web client → `http://localhost:5173`
 
 ---
 
-## 📡 API Documentation
+## 📡 API Endpoints
 
-### Auth APIs
-- **Register User**: `POST /api/auth/register`
-- **Login User**: `POST /api/auth/login`
-- **Get Logged User details**: `GET /api/auth/me` (Protected)
+### 🔐 Authentication  `POST /api/auth/...`
+| Method | Endpoint | Description |
+|---|---|---|
+| `POST` | `/api/auth/register` | Register new user (with username) |
+| `POST` | `/api/auth/login` | Login and receive JWT |
+| `GET` | `/api/auth/me` | Get logged-in user profile *(Protected)* |
 
-### Memory CRUD APIs
-- **Create Travel Memory**: `POST /api/memory` (Protected, supports image upload)
-- **Get Logged User's Memories**: `GET /api/memory` (Protected)
-- **Update Memory**: `PUT /api/memory/:id` (Protected, supports image upload)
-- **Delete Memory**: `DELETE /api/memory/:id` (Protected)
+### 📝 Memories  `GET/POST/PUT/DELETE /api/memory/...`
+| Method | Endpoint | Description |
+|---|---|---|
+| `POST` | `/api/memory` | Create travel memory *(Protected, image upload)* |
+| `GET` | `/api/memory` | Get all user memories *(Protected)* |
+| `PUT` | `/api/memory/:id` | Update memory *(Protected, image upload)* |
+| `DELETE` | `/api/memory/:id` | Delete memory *(Protected)* |
 
-### Trip CRUD APIs
-- **Create Trip Plan**: `POST /api/trips` (Protected, supports image upload & auto-geocoding)
-- **Get Logged User's Trips**: `GET /api/trips` (Protected)
-- **Get Single Trip**: `GET /api/trips/:id` (Protected)
-- **Update Trip Plan**: `PUT /api/trips/:id` (Protected, supports image upload & re-geocoding)
-- **Delete Trip Plan**: `DELETE /api/trips/:id` (Protected)
+### 🗺️ Trips  `GET/POST/PUT/DELETE /api/trips/...`
+| Method | Endpoint | Description |
+|---|---|---|
+| `POST` | `/api/trips` | Create trip plan *(Protected, Cloudinary image)* |
+| `GET` | `/api/trips` | Get all user trips *(Protected)* |
+| `GET` | `/api/trips/:id` | Get single trip *(Protected)* |
+| `PUT` | `/api/trips/:id` | Update trip *(Protected, Cloudinary image)* |
+| `DELETE` | `/api/trips/:id` | Delete trip *(Protected)* |
+| `POST` | `/api/trips/:id/upload` | Upload cover image to Cloudinary *(Protected)* |
+
+### 👤 Users  `GET/PUT /api/users/...`
+| Method | Endpoint | Description |
+|---|---|---|
+| `GET` | `/api/users/:username/profile` | Get public traveler profile *(Public)* |
+| `PUT` | `/api/users/profile` | Update bio & username *(Protected)* |
+| `PUT` | `/api/users/profile/avatar` | Upload profile avatar to Cloudinary *(Protected)* |
 
 ---
 
-## 🔒 Security & Optimization Implementation
+## 🔒 Security & Implementation Details
 
-- **Spelling-Correcting Geocoder**: Uses Levenshtein-distance fuzzy checking to resolve misspelled city/country inputs before querying OSM.
-- **Double Highlight Panels**: Keeps Memory journal entry flow and Trip Planner flow cleanly separated on the frontend dashboard.
-- **Local Inline SVG Render**: Resolves Leaflet marker broken image issues in restricted network environments by injecting custom pins directly as raw inline SVG string elements.
-- **Auto Image Cleanup**: Detects updates/deletions on memories and trips and automatically deletes matching media files from `server/uploads` to save storage.
+- **Cloudinary Integration** — `multer-storage-cloudinary` streams uploads directly from the request to Cloudinary, so no temporary files are stored on the server.
+- **Avatar Upload** — Clicking the camera badge on the profile page triggers a hidden `<input type="file">`. The selected image is previewed instantly using `URL.createObjectURL()` while it uploads in the background.
+- **Fuzzy Geocoder** — Levenshtein-distance algorithm corrects misspelled city/country names before querying Nominatim OSM API for lat/lng coordinates.
+- **JWT Protected Routes** — All mutating routes are gated by the `protect` middleware that validates the Bearer token.
+- **Username Uniqueness** — Enforced at the MongoDB schema level (`unique: true`) and double-checked in the route handler before saving.
+
+---
+
+## 🚀 Quick Push to GitHub
+
+A `push.ps1` PowerShell script is included for fast commits:
+
+```powershell
+# Auto commit with timestamp:
+.\push.ps1
+
+# Custom commit message:
+.\push.ps1 "feat: add new feature"
+```
+
+The script stages all files, commits, and pushes. If the remote has newer commits, it automatically does a pull-rebase before pushing.
+
+---
+
+## 📅 Development Timeline
+
+| Week | Focus | Key Deliverables |
+|---|---|---|
+| **Week 1** | Core Foundation | Auth (JWT + bcrypt), Memory CRUD, basic UI |
+| **Week 2** | Trip Planner & Maps | Trip CRUD, Leaflet map, fuzzy geocoding, Swagger |
+| **Week 3** | Cloud Media & Profiles | Cloudinary uploads, profile redesign, avatar upload, public profiles, edit modal |
