@@ -21,7 +21,8 @@ app.use(cors({
         // Allow requests with no origin (like mobile apps, curl, or Postman)
         if (!origin) return callback(null, true);
         
-        if (allowedOrigins.indexOf(origin) !== -1 || origin === process.env.FRONTEND_URL) {
+        const isVercel = /\.vercel\.app$/.test(origin);
+        if (allowedOrigins.indexOf(origin) !== -1 || origin === process.env.FRONTEND_URL || isVercel) {
             callback(null, true);
         } else {
             callback(new Error("Not allowed by CORS"));
