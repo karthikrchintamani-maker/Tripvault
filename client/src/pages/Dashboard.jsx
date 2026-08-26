@@ -154,12 +154,10 @@ const Dashboard = () => {
     return (
         <div style={{ maxWidth: "1000px", margin: "0 auto", padding: "1rem 0" }}>
             
-            {/* Hero Card Banner */}
             <div className="glass-panel welcome-hero" style={{ 
                 background: "#f1f5f9", 
                 border: "1px solid #e2e8f0", 
                 borderRadius: "16px",
-                padding: "2.5rem 3rem",
                 boxShadow: "none",
                 marginBottom: "2rem"
             }}>
@@ -214,8 +212,6 @@ const Dashboard = () => {
 
             {/* Quick Metrics Grid */}
             <div className="stats-grid" style={{ 
-                display: "grid", 
-                gridTemplateColumns: "repeat(4, 1fr)", 
                 gap: "1.25rem", 
                 marginBottom: "2.5rem" 
             }}>
@@ -381,7 +377,7 @@ const Dashboard = () => {
             <div style={{ marginTop: "2rem", marginBottom: "2.5rem" }}>
                 <h2 style={{ fontSize: "1.4rem", fontWeight: "700", color: "#0f172a", marginBottom: "1rem" }}>Recent Highlights</h2>
                 
-                <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "1.5rem" }}>
+                <div className="highlights-grid">
                     {/* Left Column: Recent Memory */}
                     {latestMemory ? (
                         <div

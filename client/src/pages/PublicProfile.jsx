@@ -61,14 +61,7 @@ const PublicProfile = () => {
     return (
         <div style={{ maxWidth: "1000px", margin: "0 auto", padding: "2rem 0" }}>
             {/* Profile Header */}
-            <div className="glass-panel" style={{
-                background: "linear-gradient(135deg, #005B60, #004b4f)",
-                color: "white",
-                borderRadius: "16px",
-                padding: "2.5rem 3rem",
-                marginBottom: "2rem",
-                boxShadow: "none"
-            }}>
+            <div className="public-profile-header">
                 <div style={{ display: "flex", alignItems: "center", gap: "1.5rem", marginBottom: "1rem" }}>
                     <div style={{
                         width: "80px",

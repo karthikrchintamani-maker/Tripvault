@@ -731,7 +731,20 @@ a {
   margin-top: 0.25rem;
 }
 
+.public-profile-header {
+  background: linear-gradient(135deg, #005B60, #004b4f);
+  color: white;
+  border-radius: 16px;
+  padding: 2.5rem 3rem;
+  margin-bottom: 2rem;
+  box-shadow: none;
+}
+
 @media (max-width: 768px) {
+  .main-content {
+    padding: 1.25rem 1rem !important;
+  }
+
   .page-header {
     flex-direction: column;
     align-items: flex-start;
@@ -740,10 +753,41 @@ a {
   
   .navbar {
     padding: 1rem;
+    position: relative;
+  }
+  
+  .nav-toggle {
+    display: block !important;
   }
   
   .navbar-links {
-    gap: 0.8rem;
+    display: none;
+    flex-direction: column;
+    position: absolute;
+    top: 100%;
+    left: 0;
+    width: 100%;
+    background: #ffffff;
+    border-bottom: 1px solid #e2e8f0;
+    padding: 1.5rem;
+    gap: 1rem;
+    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.05);
+    z-index: 99;
+  }
+  
+  .navbar-links.open {
+    display: flex;
+  }
+  
+  .nav-link {
+    width: 100%;
+    padding: 0.5rem 0;
+    text-align: center;
+  }
+  
+  .navbar-links .btn {
+    width: 100%;
+    margin-top: 0.5rem;
   }
   
   .user-greeting {
@@ -756,12 +800,34 @@ a {
   }
   
   .welcome-hero {
-    padding: 1.5rem;
+    padding: 1.5rem 1.5rem !important;
   }
   
   .profile-details-grid {
     grid-template-columns: 1fr;
     gap: 1rem;
+  }
+
+  .public-profile-header {
+    padding: 1.5rem 1.5rem !important;
+  }
+
+  .public-profile-header > div {
+    flex-direction: column !important;
+    align-items: flex-start !important;
+    gap: 1rem !important;
+  }
+}
+
+.highlights-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1.5rem;
+}
+
+@media (max-width: 768px) {
+  .highlights-grid {
+    grid-template-columns: 1fr;
   }
 }
 
@@ -1091,5 +1157,24 @@ a {
   .auth-right-nav {
     position: static;
     margin-bottom: 1.5rem;
+  }
+}
+
+.profile-stats-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  margin-bottom: 1.75rem;
+}
+
+@media (max-width: 768px) {
+  .profile-stats-grid {
+    grid-template-columns: 1fr !important;
+    gap: 1rem !important;
+  }
+  
+  .profile-stats-grid > div {
+    border-left: none !important;
+    padding-left: 0 !important;
+    padding-right: 0 !important;
   }
 }

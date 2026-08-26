@@ -308,7 +308,7 @@ const Profile = () => {
                 <div style={{ background: "#ffffff", padding: "2rem 2.5rem 2rem" }}>
 
                     {/* Stats row */}
-                    <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", marginBottom: "1.75rem" }}>
+                    <div className="profile-stats-grid">
 
                         {/* Member Since */}
                         <div style={{ display: "flex", alignItems: "center", gap: "0.85rem", padding: "0.5rem 1rem 0.5rem 0" }}>
