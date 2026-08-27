@@ -607,7 +607,6 @@ Then use `API.get("/trips")` instead of hardcoded `http://localhost:5000/api/tri
 #### Submission
 - [x] Live App URL: `https://tripvault-six.vercel.app`
 - [x] GitHub URL: `https://github.com/karthikrchintamani-maker/Tripvault`
-- [x] Google Form submitted ✅
 
 ---
 
