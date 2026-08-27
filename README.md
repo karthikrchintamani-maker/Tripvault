@@ -463,7 +463,7 @@ CLOUDINARY_CLOUD_NAME=your_cloud_name
 CLOUDINARY_API_KEY=your_api_key
 CLOUDINARY_API_SECRET=your_api_secret
 NODE_ENV=production
-FRONTEND_URL=https://your-tripvault.vercel.app
+FRONTEND_URL=https://tripvault-six.vercel.app
 ```
 
 #### Frontend `.env` (never put secrets here)
@@ -599,15 +599,15 @@ Then use `API.get("/trips")` instead of hardcoded `http://localhost:5000/api/tri
 - [ ] Full end-to-end test on live Vercel URL passed
 
 #### GitHub
-- [ ] `.env` is NOT committed (confirmed in `.gitignore`)
-- [ ] README updated with live URL and screenshots
-- [ ] `screenshots/` folder with app screenshots added
-- [ ] Live Vercel URL added to GitHub repo **About** section
+- [x] `.env` is NOT committed (confirmed in `.gitignore`)
+- [x] README updated with live URL and screenshots
+- [x] `screenshots/` folder with app screenshots added
+- [x] Live Vercel URL added to GitHub repo **About** section
 
 #### Submission
-- [ ] Live App URL: `https://your-tripvault.vercel.app`
-- [ ] GitHub URL: `https://github.com/karthikrchintamani-maker/Tripvault`
-- [ ] Google Form submitted ✅
+- [x] Live App URL: `https://tripvault-six.vercel.app`
+- [x] GitHub URL: `https://github.com/karthikrchintamani-maker/Tripvault`
+- [x] Google Form submitted ✅
 
 ---
 
@@ -644,7 +644,7 @@ Add to README:
 
 | | URL |
 |---|---|
-| **Live App** | `https://your-tripvault.vercel.app` |
-| **API** | `https://tripvault-backend.onrender.com/api` |
-| **Health Check** | `https://tripvault-backend.onrender.com/api/health` |
+| **Live App** | `https://tripvault-six.vercel.app` |
+| **API** | `https://tripvault-server.onrender.com/api` |
+| **Health Check** | `https://tripvault-server.onrender.com/api/health` |
 | **GitHub** | `https://github.com/karthikrchintamani-maker/Tripvault` |
